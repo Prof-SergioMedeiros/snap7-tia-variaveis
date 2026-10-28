@@ -1,0 +1,27 @@
+﻿{
+    S7_Optimized := "FALSE";
+    S7_StandardRetain := "FALSE";
+    S7_Version := "0.1"
+}
+DATA_BLOCK DB_Snap7_Resp
+    VAR
+        Heartbeat : Bool;
+        E_Bool01 : Bool;
+        OU_Bool23 : Bool;
+        NAO_Bool4 : Bool;
+        Qualquer_Bool : Bool;
+        Soma_Bits : Byte;
+        Int_Mais1 : Int;
+        DInt_Dobro : DInt;
+        Contador : DInt;
+        Real_Fahrenheit : Real;
+        LReal_Raiz : LReal;
+        String_Eco : String[30];
+        Len_String : Int;
+        Word_Invertida : Word;
+        { S7_Setpoint := "False" }
+        tmrContador : TON_TIME;
+        { S7_Setpoint := "False" }
+        tmrHeartbeat : TON_TIME;
+    END_VAR
+END_DATA_BLOCK

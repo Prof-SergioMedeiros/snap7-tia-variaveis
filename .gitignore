@@ -1,0 +1,19 @@
+# Projeto TIA Portal (binario - nao versionar; distribuir como .zip em Releases)
+*.ap21
+*.info
+ProjectInfo.txt
+AdditionalFiles/
+IM/
+Logs/
+System/
+TMP/
+UserFiles/
+Vci/
+XRef/
+
+# Exports temporarios
+export_main/
+
+# Python
+__pycache__/
+*.pyc

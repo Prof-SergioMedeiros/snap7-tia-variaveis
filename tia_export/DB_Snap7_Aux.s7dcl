@@ -1,0 +1,11 @@
+﻿{
+    S7_Optimized := "FALSE";
+    S7_StandardRetain := "FALSE";
+    S7_Version := "0.1"
+}
+DATA_BLOCK DB_Snap7_Aux
+    VAR
+        UltTickContador : DInt;
+        UltTickHeartbeat : DInt;
+    END_VAR
+END_DATA_BLOCK

@@ -1,0 +1,28 @@
+﻿{
+    S7_Optimized := "FALSE";
+    S7_StandardRetain := "FALSE";
+    S7_Version := "0.1"
+}
+DATA_BLOCK DB_Snap7
+    VAR
+        Bool_0 : Bool;
+        Bool_1 : Bool;
+        Bool_2 : Bool;
+        Bool_3 : Bool;
+        Bool_4 : Bool;
+        Bool_5 : Bool;
+        Bool_6 : Bool;
+        Bool_7 : Bool;
+        Byte_Val : Byte;
+        Int_Val : Int;
+        UInt_Val : UInt;
+        Word_Val : Word;
+        LReal_Val : LReal;
+        DInt_Val : DInt;
+        UDInt_Val : UDInt;
+        Real_Val : Real;
+        String_Val : String[20];
+        SInt_Val : SInt;
+        USInt_Val : USInt;
+    END_VAR
+END_DATA_BLOCK

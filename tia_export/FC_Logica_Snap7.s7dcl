@@ -1,0 +1,80 @@
+﻿{
+    S7_EditorMode := "SCL";
+    S7_Optimized := "TRUE";
+    S7_Version := "0.2"
+}
+FUNCTION "FC_Logica_Snap7" : Void
+    VAR_TEMP
+        soma : USInt;
+        agora : DInt;
+        dif : DInt;
+    END_VAR
+
+    { S7_Language := "SCL" }
+    NETWORK
+        
+            // Entradas: DB_Snap7 (escritas pelo Python via Snap7)
+            // Saidas:   DB_Snap7_Resp (calculadas aqui, lidas pelo Python)
+            // Bool_6 = pausa o contador | Bool_7 = zera o contador
+            // Tempo: comparacao com o relogio da CPU (TIME_TCK), sem timers IEC
+        
+            // ---- Bool ----
+            "DB_Snap7_Resp".E_Bool01 := "DB_Snap7".Bool_0 AND "DB_Snap7".Bool_1;
+            "DB_Snap7_Resp".OU_Bool23 := "DB_Snap7".Bool_2 OR "DB_Snap7".Bool_3;
+            "DB_Snap7_Resp".NAO_Bool4 := NOT "DB_Snap7".Bool_4;
+        
+            #soma := 0;
+            IF "DB_Snap7".Bool_0 THEN #soma := #soma + 1; END_IF;
+            IF "DB_Snap7".Bool_1 THEN #soma := #soma + 1; END_IF;
+            IF "DB_Snap7".Bool_2 THEN #soma := #soma + 1; END_IF;
+            IF "DB_Snap7".Bool_3 THEN #soma := #soma + 1; END_IF;
+            IF "DB_Snap7".Bool_4 THEN #soma := #soma + 1; END_IF;
+            IF "DB_Snap7".Bool_5 THEN #soma := #soma + 1; END_IF;
+            IF "DB_Snap7".Bool_6 THEN #soma := #soma + 1; END_IF;
+            IF "DB_Snap7".Bool_7 THEN #soma := #soma + 1; END_IF;
+            "DB_Snap7_Resp".Soma_Bits := USINT_TO_BYTE(#soma);
+            "DB_Snap7_Resp".Qualquer_Bool := #soma > 0;
+        
+            // ---- Inteiros ----
+            IF "DB_Snap7".Int_Val < 32767 THEN
+                "DB_Snap7_Resp".Int_Mais1 := "DB_Snap7".Int_Val + 1;
+            ELSE
+                "DB_Snap7_Resp".Int_Mais1 := 32767;
+            END_IF;
+            "DB_Snap7_Resp".DInt_Dobro := INT_TO_DINT("DB_Snap7".Int_Val) * 2;
+        
+            // ---- Reais ----
+            "DB_Snap7_Resp".Real_Fahrenheit := "DB_Snap7".Real_Val * 1.8 + 32.0;
+            "DB_Snap7_Resp".LReal_Raiz := SQRT(ABS("DB_Snap7".LReal_Val));
+        
+            // ---- String / Word ----
+            "DB_Snap7_Resp".String_Eco := CONCAT(IN1 := 'Eco: ', IN2 := "DB_Snap7".String_Val);
+            "DB_Snap7_Resp".Len_String := LEN("DB_Snap7".String_Val);
+            "DB_Snap7_Resp".Word_Invertida := NOT "DB_Snap7".Word_Val;
+        
+            // ---- Tempo atual da CPU em ms ----
+            #agora := TIME_TO_DINT(TIME_TCK());
+        
+            // ---- Contador (+1 a cada 100 ms) ----
+            #dif := #agora - "DB_Snap7_Aux".UltTickContador;
+            IF (#dif >= 100) OR (#dif < 0) THEN
+                "DB_Snap7_Aux".UltTickContador := #agora;
+                IF NOT "DB_Snap7".Bool_6 THEN
+                    IF "DB_Snap7_Resp".Contador < 2147483647 THEN
+                        "DB_Snap7_Resp".Contador := "DB_Snap7_Resp".Contador + 1;
+                    END_IF;
+                END_IF;
+            END_IF;
+            IF "DB_Snap7".Bool_7 THEN
+                "DB_Snap7_Resp".Contador := 0;
+            END_IF;
+        
+            // ---- Heartbeat (alterna a cada 500 ms) ----
+            #dif := #agora - "DB_Snap7_Aux".UltTickHeartbeat;
+            IF (#dif >= 500) OR (#dif < 0) THEN
+                "DB_Snap7_Aux".UltTickHeartbeat := #agora;
+                "DB_Snap7_Resp".Heartbeat := NOT "DB_Snap7_Resp".Heartbeat;
+            END_IF;
+        
+    END_NETWORK
+END_FUNCTION
