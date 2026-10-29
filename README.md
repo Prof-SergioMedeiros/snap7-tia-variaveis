@@ -3,6 +3,7 @@
 Projeto de exemplo que lê e escreve variáveis de um PLC S7-1500 (TIA Portal V21) pelo
 protocolo S7 usando a biblioteca [python-snap7](https://github.com/gijzelaerr/python-snap7),
 com interface gráfica em Tkinter e uma lógica em SCL que reage às variáveis escritas.
+Uma simulação pode ser vista no [site](https://prof-sergiomedeiros.github.io/snap7-tia-variaveis/)
 
 Testado com o **PLCSIM Advanced 8 Upd1**.
 
