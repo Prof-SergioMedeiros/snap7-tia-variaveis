@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Snap7 + TIA Portal V21 · Variáveis do PLC com Python</title>
+<meta name="description" content="Leitura e escrita de variáveis de um PLC S7-1500 com Python e Snap7. Demonstração interativa simulada.">
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--tx:#1b1f24;--mut:#6a737d;--bd:#dfe3e8;--ac:#0b6e6e;--ac2:#e8f4f4;--on:#2ecc71;--off:#b5b5b5;--er:#c0392b;color-scheme:light}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12161a;--card:#1b2127;--tx:#e8ecef;--mut:#99a3ad;--bd:#2c353d;--ac:#4fc3c3;--ac2:#1c2b2e;--off:#58626b;--er:#ff7b6b;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.w{max-width:1080px;margin:0 auto;padding:0 20px}
+header{padding:56px 0 32px}
+.tag{display:inline-block;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ac);background:var(--ac2);padding:4px 10px;border-radius:99px}
+h1{font-size:clamp(28px,5vw,44px);line-height:1.15;margin:14px 0 10px}
+header p{max-width:680px;color:var(--mut);font-size:18px;margin:0 0 22px}
+.btn{display:inline-block;padding:10px 18px;border-radius:8px;border:1px solid var(--ac);color:var(--ac);text-decoration:none;font-weight:600;margin:0 8px 8px 0;background:transparent;cursor:pointer;font-size:15px}
+.btn.p{background:var(--ac);color:var(--bg)}
+section{padding:28px 0}
+h2{font-size:24px;margin:0 0 6px}
+.sub{color:var(--mut);margin:0 0 16px}
+.note{background:var(--ac2);border-left:4px solid var(--ac);padding:10px 14px;border-radius:6px;margin-bottom:16px;font-size:15px}
+.g{display:grid;grid-template-columns:1.25fr 1fr;gap:16px}
+@media(max-width:860px){.g{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px}
+.card h3{margin:0 0 10px;font-size:15px}
+.bools{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;margin-bottom:12px;font-size:14px}
+.bools label{display:flex;gap:6px;align-items:center;cursor:pointer}
+.row{display:grid;grid-template-columns:96px 54px minmax(60px,1fr) minmax(90px,1.1fr) auto;gap:6px;align-items:center;padding:4px 0;border-top:1px solid var(--bd);font-size:13.5px}
+.row .t{color:var(--mut);font-size:12px}
+.m{font-family:ui-monospace,Consolas,monospace;font-size:13px;overflow-wrap:anywhere}
+input[type=text]{width:100%;padding:5px 7px;border:1px solid var(--bd);border-radius:6px;background:var(--bg);color:var(--tx);font:inherit;font-size:13px}
+.row button{padding:4px 9px;border:1px solid var(--bd);border-radius:6px;background:var(--card);color:var(--tx);cursor:pointer;font-size:12.5px}
+.row button:hover{border-color:var(--ac)}
+.er{color:var(--er);font-size:12px;grid-column:1/-1;min-height:0}
+@media(max-width:560px){.row{grid-template-columns:90px 1fr auto}.row .t,.row .cur{display:none}}
+.o{display:grid;grid-template-columns:auto 1fr auto;gap:4px 10px;align-items:center;font-size:13.5px}
+.led{width:14px;height:14px;border-radius:50%;background:var(--off);border:1px solid var(--bd)}
+.led.on{background:var(--on)}
+.o .t{color:var(--mut);font-size:12px}
+.sep{grid-column:1/-1;border-top:1px solid var(--bd);margin:4px 0}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{text-align:left;padding:5px 8px;border-top:1px solid var(--bd)}
+th{color:var(--mut);font-weight:600;border-top:0}
+.sc{overflow-x:auto}
+pre{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:12px;overflow-x:auto;font-size:13px}
+code{font-family:ui-monospace,Consolas,monospace}
+ol li{margin:4px 0}
+footer{padding:28px 0 48px;color:var(--mut);font-size:14px;border-top:1px solid var(--bd);margin-top:20px}
+a{color:var(--ac)}
+figure{margin:0}
+figure img{display:block;max-width:100%;height:auto;border:1px solid var(--bd);border-radius:10px;background:#fff}
+figcaption{color:var(--mut);font-size:14px;margin-top:8px}
+.qr{display:flex;gap:24px;align-items:center;flex-wrap:wrap;padding-top:8px}
+.qrbox{background:#fff;padding:14px;border-radius:10px;border:1px solid var(--bd);width:176px;height:176px;flex:none}
+.qrbox svg{display:block;width:100%;height:100%}
+.qr h2{font-size:20px}
+.qr p{margin:0 0 12px;color:var(--mut);max-width:420px}
+</style>
+</head>
+<body>
+<header><div class="w">
+<span class="tag">Automação · Python · Siemens</span>
+<h1>Variáveis de um PLC S7-1500 lidas e escritas com Python</h1>
+<p>Projeto de exemplo com TIA Portal V21 e Snap7: interface gráfica, tipos Bool, Int, Real, String e outros, e uma lógica em SCL que reage ao que o Python escreve.</p>
+<a class="btn p" href="https://github.com/Prof-SergioMedeiros/snap7-tia-variaveis">Ver no GitHub</a>
+<a class="btn" href="#demo">Testar a demonstração</a>
+</div></header>
+
+<main class="w">
+<section id="demo">
+<h2>Demonstração interativa</h2>
+<p class="sub">Réplica da interface do projeto, com a lógica da <code>FC_Logica_Snap7</code> reescrita em JavaScript.</p>
+<div class="note"><strong>Modo demonstração.</strong> Os valores e a lógica são simulados no navegador, sem conexão com PLC. O projeto real roda localmente em Python e se conecta à CPU pelo Snap7. Tente marcar <code>Bool_6</code> (pausa o contador) e <code>Bool_7</code> (zera).</div>
+<div class="g">
+<div class="card"><h3>Entradas · DB_Snap7 (DB1)</h3><div class="bools" id="bools"></div><div id="ins"></div></div>
+<div class="card"><h3>Saídas · DB_Snap7_Resp (DB2), calculadas pelo PLC</h3><div class="o" id="outs"></div></div>
+</div>
+</section>
+
+<section>
+<h2>A interface real (Python + Tkinter)</h2>
+<p class="sub">É o que roda no seu computador e se conecta à CPU pelo Snap7.</p>
+<figure><img src="img/interface.png" width="1300" height="742" loading="lazy" alt="Interface gráfica em Tkinter com as entradas do DB1 à esquerda e as saídas do DB2 à direita"><figcaption>Captura da interface em execução, conectada ao PLCSIM Advanced 8: Bool_0 e Bool_1 ligados, e as saídas calculadas pela lógica SCL no PLC.</figcaption></figure>
+</section>
+
+<section>
+<h2>Layout dos DBs</h2>
+<p class="sub">Acesso padrão (não otimizado), para o Snap7 endereçar por offset. Valores em big-endian, como no S7.</p>
+<div class="g">
+<div class="card sc"><h3>DB1 · entradas</h3><table>
+<tr><th>Offset</th><th>Variável</th><th>Tipo</th></tr>
+<tr><td>0.0–0.7</td><td>Bool_0 … Bool_7</td><td>Bool</td></tr>
+<tr><td>1</td><td>Byte_Val</td><td>Byte</td></tr>
+<tr><td>2</td><td>Int_Val</td><td>Int</td></tr>
+<tr><td>4</td><td>UInt_Val</td><td>UInt</td></tr>
+<tr><td>6</td><td>Word_Val</td><td>Word</td></tr>
+<tr><td>8</td><td>LReal_Val</td><td>LReal</td></tr>
+<tr><td>16</td><td>DInt_Val</td><td>DInt</td></tr>
+<tr><td>20</td><td>UDInt_Val</td><td>UDInt</td></tr>
+<tr><td>24</td><td>Real_Val</td><td>Real</td></tr>
+<tr><td>28</td><td>String_Val</td><td>String[20]</td></tr>
+<tr><td>50</td><td>SInt_Val</td><td>SInt</td></tr>
+<tr><td>51</td><td>USInt_Val</td><td>USInt</td></tr></table></div>
+<div class="card sc"><h3>DB2 · saídas do PLC</h3><table>
+<tr><th>Offset</th><th>Variável</th><th>Tipo</th></tr>
+<tr><td>0.0–0.4</td><td>Heartbeat, E_Bool01, OU_Bool23, NAO_Bool4, Qualquer_Bool</td><td>Bool</td></tr>
+<tr><td>1</td><td>Soma_Bits</td><td>Byte</td></tr>
+<tr><td>2</td><td>Int_Mais1</td><td>Int</td></tr>
+<tr><td>4</td><td>DInt_Dobro</td><td>DInt</td></tr>
+<tr><td>8</td><td>Contador</td><td>DInt</td></tr>
+<tr><td>12</td><td>Real_Fahrenheit</td><td>Real</td></tr>
+<tr><td>16</td><td>LReal_Raiz</td><td>LReal</td></tr>
+<tr><td>24</td><td>String_Eco</td><td>String[30]</td></tr>
+<tr><td>56</td><td>Len_String</td><td>Int</td></tr>
+<tr><td>58</td><td>Word_Invertida</td><td>Word</td></tr></table></div>
+</div>
+</section>
+
+<section>
+<h2>Como usar o projeto</h2>
+<ol>
+<li>No TIA Portal V21, habilite o <strong>PUT/GET</strong> na CPU e mantenha os DBs com acesso padrão.</li>
+<li>Baixe hardware e software na CPU ou no PLCSIM Advanced 8, com a CPU em RUN.</li>
+<li>Instale a biblioteca e rode a interface:</li></ol>
+<pre><code>pip install python-snap7
+python snap7_gui.py</code></pre>
+<p>O IP padrão é <code>192.168.0.1</code>, rack 0 e slot 1. A versão em linha de comando é o <code>snap7_variaveis.py</code>. Detalhes completos no <a href="https://github.com/Prof-SergioMedeiros/snap7-tia-variaveis">README do repositório</a>.</p>
+</section>
+</main>
+
+<section class="w qr">
+<div class="qrbox" id="qrbox"><svg viewBox="0 0 33 33" role="img" aria-label="QR code com o endereço desta página"><path stroke="#000" d="M0 0.5h7m1 0h1m1 0h1m5 0h1m1 0h6m2 0h7m-33 1h1m5 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h2m4 0h3m1 0h1m5 0h1m-33 1h1m1 0h3m1 0h1m2 0h3m1 0h3m2 0h3m1 0h1m1 0h1m1 0h1m1 0h3m1 0h1m-33 1h1m1 0h3m1 0h1m1 0h1m3 0h1m2 0h1m1 0h1m4 0h2m2 0h1m1 0h3m1 0h1m-33 1h1m1 0h3m1 0h1m2 0h1m3 0h1m2 0h4m4 0h1m1 0h1m1 0h3m1 0h1m-33 1h1m5 0h1m2 0h2m2 0h1m1 0h2m1 0h5m1 0h1m1 0h1m5 0h1m-33 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-25 1h5m2 0h3m2 0h1m1 0h3m-25 1h1m1 0h2m1 0h3m2 0h1m3 0h5m2 0h1m1 0h1m2 0h1m2 0h1m1 0h2m-30 1h1m3 0h1m2 0h5m1 0h1m1 0h3m2 0h2m1 0h2m1 0h2m1 0h1m-33 1h1m3 0h3m1 0h1m3 0h2m4 0h1m4 0h1m2 0h4m1 0h2m-33 1h1m6 0h4m4 0h1m3 0h2m2 0h2m1 0h2m1 0h1m-30 1h1m5 0h6m2 0h1m2 0h1m1 0h1m2 0h1m1 0h2m2 0h2m1 0h1m-31 1h2m1 0h2m1 0h2m1 0h2m1 0h2m2 0h1m1 0h1m7 0h1m1 0h1m1 0h1m-32 1h1m1 0h3m1 0h6m2 0h1m1 0h1m1 0h2m4 0h1m1 0h2m2 0h1m-31 1h1m1 0h1m2 0h1m1 0h1m1 0h5m1 0h1m3 0h1m1 0h3m1 0h2m1 0h1m1 0h1m-31 1h1m2 0h2m1 0h2m4 0h3m3 0h1m1 0h4m1 0h2m1 0h3m-28 1h1m1 0h1m3 0h1m1 0h2m2 0h2m3 0h1m2 0h2m1 0h1m1 0h2m2 0h1m-32 1h1m1 0h1m1 0h5m1 0h2m2 0h2m3 0h2m3 0h4m1 0h2m-31 1h1m1 0h1m3 0h1m1 0h3m1 0h3m1 0h3m2 0h1m1 0h1m3 0h1m3 0h1m-32 1h4m1 0h1m2 0h2m2 0h1m2 0h3m1 0h5m4 0h4m-33 1h2m1 0h2m8 0h1m1 0h1m1 0h5m1 0h2m1 0h2m1 0h1m2 0h1m-29 1h1m1 0h2m2 0h1m5 0h2m3 0h1m1 0h1m2 0h7m-32 1h3m3 0h2m1 0h2m1 0h1m1 0h1m2 0h2m2 0h1m2 0h1m1 0h1m1 0h1m1 0h2m-33 1h1m3 0h6m3 0h1m2 0h2m4 0h1m1 0h5m3 0h1m-25 1h1m6 0h2m1 0h2m1 0h1m1 0h2m3 0h2m-30 1h7m1 0h3m1 0h1m6 0h2m2 0h2m1 0h1m1 0h1m-29 1h1m5 0h1m1 0h1m2 0h3m2 0h1m4 0h4m3 0h3m-31 1h1m1 0h3m1 0h1m4 0h1m3 0h1m2 0h11m1 0h3m-33 1h1m1 0h3m1 0h1m1 0h1m1 0h2m1 0h4m1 0h1m1 0h1m3 0h1m2 0h1m2 0h1m1 0h1m-33 1h1m1 0h3m1 0h1m1 0h5m1 0h5m3 0h1m1 0h4m1 0h2m-31 1h1m5 0h1m2 0h7m1 0h1m1 0h1m2 0h1m1 0h1m1 0h3m3 0h1m-33 1h7m1 0h3m1 0h1m1 0h1m1 0h4m1 0h1m1 0h1m4 0h1m1 0h1"/></svg></div>
+<div>
+<h2>Abra no celular</h2>
+<p>Aponte a câmera para o QR code para abrir esta página em <code>prof-sergiomedeiros.github.io/snap7-tia-variaveis</code>.</p>
+<button class="btn" id="qrdl" type="button">Baixar QR code (SVG)</button>
+</div>
+</section>
+
+<footer><div class="w">Projeto didático · Snap7, TIA Portal V21 e PLCSIM Advanced 8 · <a href="https://github.com/Prof-SergioMedeiros/snap7-tia-variaveis">Código no GitHub</a></div></footer>
+
+<script>
+(function(){
+var IN=[
+{n:'Byte_Val',t:'BYTE',min:0,max:255,h:'0..255 ou 0xFF',v:0},
+{n:'Int_Val',t:'INT',min:-32768,max:32767,h:'-32768..32767',v:128},
+{n:'UInt_Val',t:'UINT',min:0,max:65535,h:'0..65535',v:0},
+{n:'Word_Val',t:'WORD',min:0,max:65535,h:'0..65535 ou 0xFFFF',v:0},
+{n:'LReal_Val',t:'LREAL',f:1,h:'decimal',v:0},
+{n:'DInt_Val',t:'DINT',min:-2147483648,max:2147483647,h:'-2147483648..2147483647',v:0},
+{n:'UDInt_Val',t:'UDINT',min:0,max:4294967295,h:'0..4294967295',v:0},
+{n:'Real_Val',t:'REAL',f:1,r:1,h:'decimal',v:100.45},
+{n:'String_Val',t:'STRING',s:1,h:'até 20 caracteres',v:'Ola PLC'},
+{n:'SInt_Val',t:'SINT',min:-128,max:127,h:'-128..127',v:0},
+{n:'USInt_Val',t:'USINT',min:0,max:255,h:'0..255',v:0}];
+var b=[true,true,false,false,false,false,false,false],cnt=0,hb=false,tick=0,V={};
+IN.forEach(function(x){V[x.n]=x.r?Math.fround(x.v):x.v});
+function fmt(x){return typeof x==='number'&&!Number.isInteger(x)?String(Number(x.toPrecision(6))):String(x)}
+function $(id){return document.getElementById(id)}
+function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
+
+var bw=$('bools'),dicas={6:' (pausa o contador)',7:' (zera o contador)'};
+b.forEach(function(v,i){var l=el('label'),c=el('input');c.type='checkbox';c.checked=v;
+c.onchange=function(){b[i]=c.checked;calc()};l.appendChild(c);l.appendChild(document.createTextNode('Bool_'+i+(dicas[i]||'')));bw.appendChild(l)});
+
+var iw=$('ins'),cur={};
+IN.forEach(function(x){
+var r=el('div','row'),inp=el('input');inp.type='text';inp.setAttribute('aria-label','Novo valor de '+x.n);
+var cv=el('span','m cur'),btn=el('button',null,'Escrever'),er=el('div','er');
+r.appendChild(el('span',null,x.n));r.appendChild(el('span','t',x.t));r.appendChild(cv);r.appendChild(inp);r.appendChild(btn);r.appendChild(er);
+cur[x.n]=cv;iw.appendChild(r);
+function go(){
+var txt=inp.value;er.textContent='';
+if(x.s){V[x.n]=txt.slice(0,20);calc();return}
+var s=txt.trim().replace(',','.'),n=/^0x/i.test(s)?parseInt(s,16):Number(s);
+if(s===''||isNaN(n)){er.textContent='Valor inválido ('+x.h+')';return}
+if(!x.f){if(!Number.isInteger(n)||n<x.min||n>x.max){er.textContent='Fora da faixa de '+x.t+': '+x.h;return}}
+V[x.n]=x.r?Math.fround(n):n;calc()}
+btn.onclick=go;inp.onkeydown=function(e){if(e.key==='Enter')go()}});
+
+var ow=$('outs'),O={},ledNames=['Heartbeat','E_Bool01','OU_Bool23','NAO_Bool4','Qualquer_Bool'],
+vals=[['Soma_Bits','BYTE'],['Int_Mais1','INT'],['DInt_Dobro','DINT'],['Contador','DINT'],['Real_Fahrenheit','REAL'],['LReal_Raiz','LREAL'],['String_Eco','STRING'],['Len_String','INT'],['Word_Invertida','WORD']];
+ledNames.forEach(function(n){var l=el('span','led');ow.appendChild(l);ow.appendChild(el('span',null,n));ow.appendChild(el('span','t','BOOL'));O[n]=l});
+ow.appendChild(el('div','sep'));
+vals.forEach(function(p){ow.appendChild(el('span','t',''));var s=el('span',null,p[0]);ow.appendChild(s);
+var v=el('span','m');ow.appendChild(v);O[p[0]]=v;s.title=p[1]});
+
+function calc(){
+var soma=b.filter(Boolean).length,i=V.Int_Val;
+var out={
+Soma_Bits:soma,Int_Mais1:i<32767?i+1:32767,DInt_Dobro:i*2,Contador:cnt,
+Real_Fahrenheit:Math.fround(V.Real_Val*1.8+32),LReal_Raiz:Math.sqrt(Math.abs(V.LReal_Val)),
+String_Eco:'Eco: '+V.String_Val,Len_String:V.String_Val.length,Word_Invertida:(~V.Word_Val)&0xFFFF};
+O.Heartbeat.className='led'+(hb?' on':'');
+O.E_Bool01.className='led'+(b[0]&&b[1]?' on':'');
+O.OU_Bool23.className='led'+(b[2]||b[3]?' on':'');
+O.NAO_Bool4.className='led'+(!b[4]?' on':'');
+O.Qualquer_Bool.className='led'+(soma>0?' on':'');
+vals.forEach(function(p){O[p[0]].textContent=fmt(out[p[0]])});
+IN.forEach(function(x){cur[x.n].textContent=x.s?V[x.n]:fmt(V[x.n])})}
+
+setInterval(function(){tick++;if(!b[6])cnt++;if(b[7])cnt=0;if(tick%5===0)hb=!hb;calc()},100);
+calc();
+})();
+</script>
+<script>
+(function(){
+var b=document.getElementById('qrdl'),p=document.querySelector('#qrbox path');
+if(!b||!p)return;
+b.onclick=function(){
+var s='<svg xmlns="http://www.w3.org/2000/svg" viewBox="-3 -3 39 39" width="780" height="780"><rect x="-3" y="-3" width="39" height="39" fill="#fff"/>'+p.outerHTML+'</svg>';
+var u=URL.createObjectURL(new Blob([s],{type:'image/svg+xml'})),a=document.createElement('a');
+a.href=u;a.download='qr-snap7-tia-variaveis.svg';document.body.appendChild(a);a.click();a.remove();
+setTimeout(function(){URL.revokeObjectURL(u)},1000)};
+})();
+</script>
+</body>
+</html>
